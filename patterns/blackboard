@@ -1,0 +1,18 @@
+#bb-access-log.*.txt
+#close to an Apache access log, but not quite
+#    - No referrer field
+#    - Extra trailing fields (session, timing (seconds), timing (milliseconds), bytes again?)
+#    - Extra ID field of some sort (usually '{unset id}')
+LOG_BBACCESS %{IPORHOST:http_client} %{USER:http_ident} %{USER:http_auth} (?<http_id>\{unset id\}|%{USER}) \[%{HTTPDATE:timestamp}\] "%{WORD:http_verb} %{NOTSPACE:http_request} HTTP/%{NUMBER:http_version}" %{INT:http_response} (?<http_bytes>%{NUMBER}|-) "%{DATA:http_agent}" (?<http_session>%{BASE16NUM}|-) %{NUMBER:http_seconds} %{NUMBER:http_ms} (?:%{NUMBER}|-)
+
+#bb-authentication-log.txt
+#TODO: this only recognizes PDT timezone at the moment
+#TODO: easier to parse with Logstash's kv filter?
+LOG_BBAUTH timestamp=%{TIMESTAMP_BBAUTH:timestamp}\|app_vend=%{USER}\|app_name=%{USER}\|app_ver=%{NOTSPACE}\|evt_code=%{INT}\|evt_name=%{DATA:auth_event}\|sev=%{INT}\|cat=%{USER}\|authnprovider=%{DATA:auth_provider}\|dhost=%{DATA}\|outcome=%{WORD:auth_result}\|src_ip=%{DATA}\|duid=%{USER:auth_uid}\|duser=%{USER:auth_uname}\|text=%{DATA:message}\|authnmethod=%{DATA:auth_method}\|http_useragent=%{DATA:auth_agent}
+TIMESTAMP_BBAUTH %{MONTH} %{MONTHDAY} %{YEAR} %{HOUR}:%{MINUTE}:%{SECOND} PDT
+
+#bb-services-log.txt
+#note this log file requires extensive multiline codecs
+#timestamp is painfully close to ISO8601
+LOG_BBSERVICE (?m)%{TIMESTAMP_BBSERVICE:timestamp} - %{GREEDYDATA:message}
+TIMESTAMP_BBSERVICE %{YEAR}-%{MONTHNUM}-%{MONTHDAY} %{HOUR}:%{MINUTE}:%{SECOND} %{ISO8601_TIMEZONE}

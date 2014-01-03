@@ -1,0 +1,42 @@
+GCLOG_TIMETRIAD \[Times: user=%{NUMBER:gc_time_user} sys=%{NUMBER:gc_time_sys}, real=%{NUMBER:gc_time_real} secs\]
+GC_SIZES %{NUMBER:gc_mem_total_before}K->%{NUMBER:gc_mem_total_after}K\(%{NUMBER:gc_mem_total_heap}K\)
+
+#concurrent mark start
+#2013-09-12T05:40:08.263-0700: 15.620: [CMS-concurrent-abortable-preclean-start]
+#2013-09-12T05:39:57.910-0700: 5.267: [CMS-concurrent-mark-start]
+GCLOG_MARKSTART %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:gc_uptime}: \[%{USER:gc_event}\]
+
+#concurrent mark abort
+#not sure what causes these
+#CMS: abort preclean due to time 2013-09-12T05:40:13.359-0700: 20.716: [CMS-concurrent-abortable-preclean: 3.416/5.096 secs] [Times: user=8.46 sys=0.41, real=5.09 secs] 
+GCLOG_MARKABORT %{SPACE}CMS: abort preclean due to time %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:gc_uptime}: \[%{USER:gc_event}: %{NUMBER:gc_t1}/%{NUMBER:gc_t2} secs\] \[Times: user=%{NUMBER:gc_time_user} sys=%{NUMBER:gc_time_sys}, real=%{NUMBER:gc_time_real} secs\]
+
+#concurrent mark completion
+#2013-09-12T05:39:57.972-0700: 5.329: [CMS-concurrent-mark: 0.061/0.061 secs] [Times: user=0.07 sys=0.00, real=0.06 secs] 
+#TODO: what is gc_t1/gc_t2? obviously they're some number of seconds, but what do they mean?
+GCLOG_MARKFINISH %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:gc_uptime}: \[%{USER:gc_event}: %{NUMBER:gc_t1}/%{NUMBER:gc_t2} secs\] \[Times: user=%{NUMBER:gc_time_user} sys=%{NUMBER:gc_time_sys}, real=%{NUMBER:gc_time_real} secs\]
+
+#simple mark?
+#2013-09-13T06:57:29.619-0700: 91056.976: [GC [1 CMS-initial-mark: 386222K(6291456K)] 423286K(8039104K), 0.0218300 secs] [Times: user=0.03 sys=0.00, real=0.03 secs] 
+GCLOG_MARK %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:gc_uptime}: \[(?<gc_mode>GC|Full GC) \[1 %{USER:gc_event}: %{NUMBER:gc_mem_tenured_before}K\(%{NUMBER:gc_mem_tenured_heap}K\)\] %{NUMBER:gc_mem_total_before}K\(%{NUMBER:gc_mem_total_heap}K\), %{NUMBER:gc_time} secs\] \[Times: user=%{NUMBER:gc_time_user} sys=%{NUMBER:gc_time_sys}, real=%{NUMBER:gc_time_real} secs\]
+
+#sweep/collect
+#2013-09-12T05:41:23.682-0700: 91.039: [GC 91.039: [ParNew: 1580526K->191366K(1747648K), 0.1495150 secs] 1580526K->191366K(8039104K), 0.1497070 secs] [Times: user=0.54 sys=0.00, real=0.15 secs] 
+GCLOG_COLLECT %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:gc_uptime}: \[(?<gc_mode>GC|Full GC) %{NUMBER}: \[%{USER:gc_event}: %{NUMBER:gc_mem_young_before}K->%{NUMBER:gc_mem_young_after}K\(%{NUMBER:gc_mem_young_heap}K\), %{NUMBER:gc_time_young} secs\] %{NUMBER:gc_mem_total_before}K->%{NUMBER:gc_mem_total_after}K\(%{NUMBER:gc_mem_total_heap}K\), %{NUMBER:gc_time_total} secs\] \[Times: user=%{NUMBER:gc_time_user} sys=%{NUMBER:gc_time_sys}, real=%{NUMBER:gc_time_real} secs\]
+
+#stop-the-world phase, rescan everything
+#2013-09-12T05:40:13.360-0700: 20.717: [GC[YG occupancy: 1404714 K (1747648 K)]20.717: [Rescan (parallel) , 0.2760430 secs]20.993: [weak refs processing, 0.0000080 secs]20.993: [class unloading, 0.0107650 secs]21.004: [scrub symbol table, 0.0106300 secs]21.015: [scrub string table, 0.0006880 secs] [1 CMS-remark: 0K(6291456K)] 1404714K(8039104K), 0.2995470 secs] [Times: user=1.05 sys=0.00, real=0.30 secs] 
+#TODO: does this line need a gc_event? maybe capture "Rescan"?
+GCLOG_RESCAN %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:gc_uptime}: \[(?<gc_mode>GC|Full GC)\[YG occupancy: %{NUMBER:gc_mem_young_before} K \(%{NUMBER:gc_mem_young_heap} K\)\]%{NUMBER}: \[Rescan \(parallel\) , %{NUMBER:gc_time_rescan} secs\]%{NUMBER}: \[weak refs processing, %{NUMBER:gc_time_weakrefs} secs\]%{NUMBER}: \[class unloading, %{NUMBER:gc_time_classes} secs\]%{NUMBER}: \[scrub symbol table, %{NUMBER:gc_time_symbols} secs\]%{NUMBER}: \[scrub string table, %{NUMBER:gc_time_strings} secs\] \[1 CMS-remark: %{NUMBER:gc_mem_tenured_before}K\(%{NUMBER:gc_mem_tenured_heap}K\)\] %{NUMBER:gc_mem_total_before}K\(%{NUMBER:gc_mem_total_heap}K\), %{NUMBER:gc_time_remark} secs\] \[Times: user=%{NUMBER:gc_time_user} sys=%{NUMBER:gc_time_sys}, real=%{NUMBER:gc_time_real} secs\]
+
+
+#possible log lines I haven't yet seen in the wild
+#(concurrent mode failure): 402978K->248977K(786432K), 2.3728734 secs] 663850K->248977K(1048384K), 2.3733725 secs]
+#283.736: [Full GC 283.736: [ParNew: 261599K->261599K(261952K), 0.0000615 secs] 826554K->826554K(1048384K), 0.0003259 secs]
+#GC locker: Trying a full collection because scavenge failed
+#283.736: [Full GC 283.736: [ParNew: 261599K->261599K(261952K), 0.0000288 secs]
+
+
+#"incremental" CMS mode, which I don't think we're using (note the "icms_dc=4")
+#2803.125: [GC 2803.125: [ParNew: 408832K->0K(409216K), 0.5371950 secs] 611130K->206985K(1048192K) icms_dc=4 , 0.5373720 secs]
+#2824.209: [GC 2824.209: [ParNew: 408832K->0K(409216K), 0.6755540 secs] 615806K->211897K(1048192K) icms_dc=4 , 0.6757740 secs]
